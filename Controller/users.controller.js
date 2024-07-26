@@ -16,7 +16,6 @@ const addUser = async (req, res) => {
       const existingUser = await usersCollection.findOne({ email: userData.email });
   
       if (existingUser) {
-        console.log('aceeee');
         return res.send({ message: 'Account with this email already exists' });
       }
   
@@ -25,7 +24,6 @@ const addUser = async (req, res) => {
         ...userData,
         password: hashedPassword
       });
-  console.log('in');
       res.status(201).send(result);
     } catch (error) {
       console.error('Error adding user:', error);

@@ -30,7 +30,10 @@ app.post('/jwt', async (req, res) => {
 
 // Routes
 const userRoutes = require('./Routes/users.routes');
+const donationRoutes = require('./Routes/donation.router');
+
 app.use('/user', userRoutes);
+app.use('/donation', donationRoutes);
 
 
 app.get('/', (req, res) => {
