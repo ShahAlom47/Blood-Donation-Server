@@ -2,9 +2,11 @@ const express = require('express');
 const router= express.Router()
 
 
-const { bloodRequest } = require('../Controller/donation.controller');
+const {addBloodRequest, getBloodRequest, getBloodRequestDetails } = require('../Controller/donation.controller');
 //  example=== /donation/bloodRequest
 
-router.post('/bloodRequest',bloodRequest);
+router.post('/bloodRequest',addBloodRequest);
+router.get('/getBloodRequest',getBloodRequest);
+router.get('/getBloodRequest/details/:id',getBloodRequestDetails);
 
 module.exports=router;
