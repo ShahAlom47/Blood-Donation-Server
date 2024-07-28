@@ -57,21 +57,18 @@ const updateDonationRequest = async (req, res) => {
     const notificationData = data.notificationData;
 
     try {
-       
         const donationRequest = await donationCollection.findOne({ _id: new ObjectId(id) });
 
         if (!donationRequest) {
             return res.send({ success: false, message: 'Donation request not found' });
         }
 
-       
         const donorExists = donationRequest.donors.some(donor => donor.donorEmail === donorInfo.donorEmail);
 
         if (donorExists) {
             return res.send({ success: false, message: 'You Already Accept this Request' });
         }
 
-       
         const updateFields = {
             $push: { donors: donorInfo },
             $set: { status: status }
@@ -82,13 +79,15 @@ const updateDonationRequest = async (req, res) => {
             updateFields
         );
 
-     
         const notification = {
             ...notificationData,
             timestamp: new Date(),
         };
 
         await notificationCollection.insertOne(notification);
+
+        // Emit notification to the requester
+        req.io.to(notificationData.requesterEmail).emit('notification', notification);
 
         console.log(data);
         return res.send({ success: true, message: 'Thank you for volunteering to donate blood!', data: data });
