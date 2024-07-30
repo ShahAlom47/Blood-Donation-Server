@@ -56,10 +56,14 @@ app.post('/jwt', async (req, res) => {
 const userRoutes = require('./Routes/users.routes');
 const donationRoutes = require('./Routes/donation.router');
 const notificationRoutes = require('./Routes/notification.router');
+const bloodBankRoutes =  require('./Routes/bloodBank.router')
+
 
 app.use('/user', userRoutes);
 app.use('/donation', donationRoutes);
 app.use('/notification', notificationRoutes );
+app.use('/bloodBank', bloodBankRoutes );
+
 
 app.get('/', (req, res) => {
     res.send('Red Love is Running');

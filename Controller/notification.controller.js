@@ -1,4 +1,5 @@
-const { getNotificationCollection } = require("../utils/NotificationCollection");
+const { getNotificationCollection } = require("../utils/AllDB_Collections/NotificationCollection");
+
 
 const notificationCollection = getNotificationCollection();
 

@@ -3,7 +3,7 @@ const { db } = require("../utils/DB-connect");
 const bcrypt = require('bcryptjs');
 var jwt = require('jsonwebtoken');
 const { ObjectId } = require("mongodb");
-const { getNotificationCollection } = require("../utils/NotificationCollection");
+const { getNotificationCollection } = require("../utils/AllDB_Collections/NotificationCollection");
 
 
 

@@ -1,4 +1,4 @@
-const { db } = require("./DB-connect");
+const { db } = require("../DB-connect");
 
 
 const getNotificationCollection = () => {
