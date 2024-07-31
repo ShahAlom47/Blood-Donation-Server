@@ -98,10 +98,18 @@ const updateDonationRequest = async (req, res) => {
 };
 
 
+const getUserAllRequest =async(req,res)=>{
+const email=req.params.email
+const query = {userEmail:email}
+const result =await donationCollection.find(query).toArray()
+return res.send(result)
+}
+
 
 module.exports = {
     addBloodRequest,
     getBloodRequest,
     updateDonationRequest,
+    getUserAllRequest,
 
 }
