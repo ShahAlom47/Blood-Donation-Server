@@ -8,7 +8,7 @@ const { getNotificationCollection } = require("../utils/AllDB_Collections/Notifi
 
 
 const donationCollection = db.collection('donation')
-const notificationCollection=getNotificationCollection()
+const notificationCollection = getNotificationCollection()
 
 
 // Blood request 
@@ -23,16 +23,16 @@ const addBloodRequest = async (req, res) => {
 // get blood request data 
 
 const getBloodRequest = async (req, res) => {
-    const { page = 1, limit = 8 } = req.query; 
+    const { page = 1, limit = 8 } = req.query;
 
     try {
         const response = await donationCollection.find()
             .sort({ requireDate: -1 })
-            .skip((page - 1) * limit) 
-            .limit(parseInt(limit)) 
+            .skip((page - 1) * limit)
+            .limit(parseInt(limit))
             .toArray();
 
-        const total = await donationCollection.countDocuments(); 
+        const total = await donationCollection.countDocuments();
 
         return res.send({
             data: response,
@@ -97,19 +97,45 @@ const updateDonationRequest = async (req, res) => {
     }
 };
 
-
-const getUserAllRequest =async(req,res)=>{
-const email=req.params.email
-const query = {userEmail:email}
-const result =await donationCollection.find(query).toArray()
-return res.send(result)
+//  get all user request 
+const getUserAllRequest = async (req, res) => {
+    const email = req.params.email
+    const query = { userEmail: email }
+    const result = await donationCollection.find(query).toArray()
+    return res.send(result)
 }
 
+// confirm request 
+const updateRequestConfirm = async (req, res) => {
+    const id = req.params.id;
+    const ConfirmedDonorData  = req.body; 
+
+    const query = { _id: new ObjectId(id) };
+    const update = {
+        $set: {
+            status: 'Complete',
+            ConfirmedDonorData: ConfirmedDonorData 
+        }
+    };
+
+    try {
+        const result = await donationCollection.updateOne(query, update);
+        if (result.modifiedCount > 0) {
+            res.send({status:true, message: 'Request updated successfully', id });
+        } else {
+            res.send({ message: 'Request not found' });
+        }
+    } catch (error) {
+        console.error('Error updating request:', error);
+        res.status(500).send({ message: 'Error updating request' });
+    }
+};
 
 module.exports = {
     addBloodRequest,
     getBloodRequest,
     updateDonationRequest,
     getUserAllRequest,
+    updateRequestConfirm,
 
 }

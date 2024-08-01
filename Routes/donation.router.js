@@ -3,7 +3,8 @@ const router= express.Router()
 
 
 const {addBloodRequest, getBloodRequest,
-     updateDonationRequest, getUserAllRequest, 
+     updateDonationRequest, getUserAllRequest,
+     updateRequestConfirm, 
     
     } = require('../Controller/donation.controller');
 
@@ -14,5 +15,6 @@ router.post('/bloodRequest',addBloodRequest);
 router.get('/getBloodRequest',getBloodRequest);
 router.put('/updateDonationRequest', verifyToken,updateDonationRequest);
 router.get('/user/allRequest/:email', verifyToken,getUserAllRequest);
+router.patch('/user/confirmDonation/:id', verifyToken,updateRequestConfirm);
 
 module.exports=router;
