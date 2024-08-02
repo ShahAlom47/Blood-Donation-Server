@@ -4,11 +4,13 @@ const bcrypt = require('bcryptjs');
 var jwt = require('jsonwebtoken');
 const { ObjectId } = require("mongodb");
 const { getNotificationCollection } = require("../utils/AllDB_Collections/NotificationCollection");
+const { getUserCollection } = require("../utils/AllDB_Collections/userCollection");
 
 
 
 const donationCollection = db.collection('donation')
 const notificationCollection = getNotificationCollection()
+const usersCollection= getUserCollection()
 
 
 // Blood request 
@@ -108,21 +110,34 @@ const getUserAllRequest = async (req, res) => {
 // confirm request 
 const updateRequestConfirm = async (req, res) => {
     const id = req.params.id;
-    const ConfirmedDonorData  = req.body; 
-    const donorEmail= ConfirmedDonorData.donorEmail
+    const ConfirmedDonorData = req.body;
+    const donorEmail = ConfirmedDonorData.donorEmail;
 
     const query = { _id: new ObjectId(id) };
     const update = {
         $set: {
             status: 'Complete',
-            ConfirmedDonorData: ConfirmedDonorData 
+            ConfirmedDonorData: ConfirmedDonorData
         }
     };
 
     try {
         const result = await donationCollection.updateOne(query, update);
         if (result.modifiedCount > 0) {
-            res.send({status:true, message: 'Request updated successfully', id });
+            const userQuery = { email: donorEmail };
+            const dateUpdate = {
+                $set: {
+                    lastDonate: new Date().toLocaleDateString()
+                }
+            };
+            
+            const userDonateDateUpdate = await usersCollection.updateOne(userQuery, dateUpdate);
+            
+            if (userDonateDateUpdate.modifiedCount > 0) {
+                res.send({ status: true, message: 'Request and user donation date updated successfully', id });
+            } else {
+                res.send({ status: true, message: 'Request updated successfully, but user donation date not found', id });
+            }
         } else {
             res.send({ message: 'Request not found' });
         }
