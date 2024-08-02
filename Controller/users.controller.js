@@ -1,10 +1,11 @@
 const { db } = require("../utils/DB-connect");
 const bcrypt = require('bcryptjs');
 var jwt = require('jsonwebtoken');
+const { getUserCollection } = require("../utils/AllDB_Collections/userCollection");
 
 
 
-const usersCollection = db.collection('users')
+const usersCollection =getUserCollection()
 
 
 // Register  

@@ -109,6 +109,7 @@ const getUserAllRequest = async (req, res) => {
 const updateRequestConfirm = async (req, res) => {
     const id = req.params.id;
     const ConfirmedDonorData  = req.body; 
+    const donorEmail= ConfirmedDonorData.donorEmail
 
     const query = { _id: new ObjectId(id) };
     const update = {
@@ -131,11 +132,50 @@ const updateRequestConfirm = async (req, res) => {
     }
 };
 
+
+//   all user request 
+const getAdminAllRequest = async (req, res) => {
+
+    const { page = 1, limit = 8 } = req.query;
+
+    try {
+        const response = await donationCollection.find()
+            .sort({ requestDate: -1 })
+            .skip((page - 1) * limit)
+            .limit(parseInt(limit))
+            .toArray();
+
+        const total = await donationCollection.countDocuments();
+
+        return res.send({
+            data: response,
+            totalPages: Math.ceil(total / limit),
+            currentPage: parseInt(page)
+        });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).send('Server Error');
+    }
+};
+
+
+
+// delete blood request 
+const deleteBloodRequest = async (req, res) => {
+    const id = req.params.id;
+    const result =await donationCollection.deleteOne({_id: new ObjectId(id)})
+    return res.send(result)
+}
+
+
+
 module.exports = {
     addBloodRequest,
     getBloodRequest,
     updateDonationRequest,
     getUserAllRequest,
     updateRequestConfirm,
+    getAdminAllRequest,
+    deleteBloodRequest,
 
 }
