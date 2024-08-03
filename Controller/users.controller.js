@@ -113,9 +113,27 @@ const updateUserData = async (req, res) => {
   }
 };
 
+const updateUserProfilePhoto = async (req, res) => {
+  const email=req.params.email;
+  const {photoURL}=req.body;
+  const query= {email:email}
+  const updateData={
+    $set:{
+      photoURL:photoURL
+    }
+  }
+
+  const result=await usersCollection.updateOne(query,updateData)
+  return res.send(result)
+
+  console.log(email,photoURL);
+
+}
+
 module.exports = {
   addUser,
   login,
   isLogin,
   updateUserData,
+  updateUserProfilePhoto,
 }
