@@ -51,11 +51,17 @@ const getBloodGroupSummary = async (req, res) => {
 }
 
 
+const getBloodGroupData = async (req, res) => {
+const group=req.params.group;
+const result = await bloodBankCollection.find({bloodGroup:group}).toArray()
 
+return res.send(result)
+}
 
 
 module.exports={
 
     addBloodDonor,
     getBloodGroupSummary,
+    getBloodGroupData,
 }
