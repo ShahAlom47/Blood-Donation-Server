@@ -35,6 +35,36 @@ const userNotification = async (req, res) => {
 };
 
 
+// alll natification for admin 
+
+const allNotification = async (req, res) => {
+
+
+  const query = {
+    $or: [
+      { type: "donation_interest", },
+      { type: "donation_accept",  },
+      { type: "donation_received", },
+      { type: "blood_bank_blood_request", },
+     
+    ]
+  };
+
+  try {
+    const interestedNotification = await notificationCollection
+      .find(query)
+      .sort({ timestamp: -1 })
+      .limit(20)
+      .toArray();
+    return res.send(interestedNotification);
+  } catch (error) {
+    console.error('Error fetching notifications:', error);
+    return res.status(500).send({ success: false, error: 'Failed to fetch notifications' });
+  }
+};
+
+
+
 // Add notification   
 
 const addNotification = async (notificationData) => {
@@ -51,4 +81,5 @@ const addNotification = async (notificationData) => {
 module.exports = {
   userNotification,
   addNotification,
+  allNotification,
 };

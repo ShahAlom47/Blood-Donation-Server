@@ -11,6 +11,54 @@ const addBloodDonor = async (req, res) => {
     const result = await bloodBankCollection.insertOne(data)
     res.send(result)
 }
+//    get all Blood Bank Data 
+
+const getAllBloodBankData = async (req, res) => {
+    const { page = 1, limit = 8 } = req.query;
+    const skip = (page - 1) * limit;
+
+    try {
+        const pipeline = [
+            {
+                $addFields: {
+                    priority: {
+                        $cond: [{ $eq: ["$status", "Requested"] }, 1, 2]
+                    }
+                }
+            },
+            {
+                $sort: {
+                    priority: 1, 
+                    timestamp: -1
+                }
+            },
+            {
+                $skip: skip
+            },
+            {
+                $limit: parseInt(limit)
+            }
+        ];
+
+       
+        const response = await bloodBankCollection.aggregate(pipeline).toArray();
+
+        const total = await bloodBankCollection.countDocuments();
+
+        return res.send({
+            data: response,
+            totalPages: Math.ceil(total / limit),
+            currentPage: parseInt(page)
+        });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).send('Server Error');
+    }
+};
+
+
+
+
 
 const getBloodGroupSummary = async (req, res) => {
     try {
@@ -79,7 +127,7 @@ const updateBloodBankDataState = async (req, res) => {
 
         if (updateResponse.modifiedCount > 0) {
             const notificationResponse = await addNotification(notificationData);
-       
+            
             
             return res.send({ status: true, message: 'Status updated and notification added successfully' });
         }
@@ -94,7 +142,7 @@ const updateBloodBankDataState = async (req, res) => {
 
 
 module.exports = {
-
+    getAllBloodBankData,
     addBloodDonor,
     getBloodGroupSummary,
     getBloodGroupData,

@@ -73,3 +73,8 @@ app.get('/', (req, res) => {
 server.listen(port, () => {
     console.log(`Server listening on port ${port}`);
 });
+
+
+
+// check total code line . 
+// find . -path ./node_modules -prune -o -path ./.git -prune -o -name '.env' -prune -o \( -name 'package-lock.json' -o -name 'package.json' \) -prune -o -type f -print | xargs wc -l  
