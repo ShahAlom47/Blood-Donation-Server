@@ -88,7 +88,7 @@ const updateDonationRequest = async (req, res) => {
 
         await notificationCollection.insertOne(notification);
 
-        // Emit notification to the requester
+      
         req.io.to(notificationData.requesterEmail).emit('notification', notification);
 
         console.log(data);

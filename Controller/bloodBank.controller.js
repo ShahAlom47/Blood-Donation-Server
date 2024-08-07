@@ -1,11 +1,13 @@
+const { ObjectId } = require("mongodb");
 const { getBloodBankCollection } = require("../utils/AllDB_Collections/BloodBankCollection");
+const { addNotification } = require("./notification.controller");
 
 
-const bloodBankCollection=getBloodBankCollection()
+const bloodBankCollection = getBloodBankCollection()
 
 
-const addBloodDonor =async (req,res)=>{
-    const data=req.body;
+const addBloodDonor = async (req, res) => {
+    const data = req.body;
     const result = await bloodBankCollection.insertOne(data)
     res.send(result)
 }
@@ -52,16 +54,49 @@ const getBloodGroupSummary = async (req, res) => {
 
 
 const getBloodGroupData = async (req, res) => {
-const group=req.params.group;
-const result = await bloodBankCollection.find({bloodGroup:group}).toArray()
+    const group = req.params.group;
+    const result = await bloodBankCollection.find({ bloodGroup: group }).toArray()
 
-return res.send(result)
+
+    return res.send(result)
 }
 
 
-module.exports={
+
+const updateBloodBankDataState = async (req, res) => {
+    const id = req.params.id;
+    const { notificationData, status } = req.body;
+
+    try {
+        const query = { _id: new ObjectId(id) };
+        const updateData = {
+            $set: {
+                status: status,
+            }
+        };
+
+        const updateResponse = await bloodBankCollection.updateOne(query, updateData);
+
+        if (updateResponse.modifiedCount > 0) {
+            const notificationResponse = await addNotification(notificationData);
+       
+            
+            return res.send({ status: true, message: 'Status updated and notification added successfully' });
+        }
+
+        return res.send({ status: false, message: 'Status update failed' });
+
+    } catch (error) {
+        console.error('Error updating blood bank data and adding notification:', error);
+        res.status(500).send('Internal Server Error');
+    }
+};
+
+
+module.exports = {
 
     addBloodDonor,
     getBloodGroupSummary,
     getBloodGroupData,
+    updateBloodBankDataState,
 }

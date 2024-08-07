@@ -34,6 +34,21 @@ const userNotification = async (req, res) => {
   }
 };
 
+
+// Add notification   
+
+const addNotification = async (notificationData) => {
+  try {
+      const result = await notificationCollection.insertOne(notificationData);
+      return result;
+  } catch (error) {
+      console.error('Error adding notification:', error);
+      return { error: 'Failed to add notification', details: error };
+  }
+};
+
+
 module.exports = {
-  userNotification
+  userNotification,
+  addNotification,
 };
