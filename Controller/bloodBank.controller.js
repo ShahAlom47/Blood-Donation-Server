@@ -297,7 +297,27 @@ console.log(notificationResult);
     }
 };
 
+// cancel user blood bank request 
 
+const cancelUserBloodBankRequest = async (req, res) => {
+    const id = req.params.id; 
+    const { requesterEmail } = req.body; 
+    const query = { _id: new ObjectId(id) };
+    const updateData = {
+        $pull: {
+            requester: { requesterEmail: requesterEmail }
+        }
+    };
+    const result = await bloodBankCollection.updateOne(query, updateData);
+
+    console.log(id, requesterEmail);
+
+    return res.send({
+        status: true,
+        message: 'Request Cancelled',
+        result
+    });
+}
 
 
 
@@ -312,4 +332,5 @@ module.exports = {
     deleteBloodBankData,
     rejectBloodBankRequest,
     acceptBloodBankRequest,
+    cancelUserBloodBankRequest,
 }
