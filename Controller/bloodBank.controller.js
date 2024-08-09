@@ -59,7 +59,19 @@ const getAllBloodBankData = async (req, res) => {
     }
 };
 
+//  get user blood bank data 
 
+const getUserBloodBankRequest = async (req, res) => {
+    const email = req.params.email;
+
+    const result = await bloodBankCollection.find({
+        "requester": {
+            $elemMatch: { "requesterEmail": email }
+        }
+    }).toArray();
+
+    res.send(result);
+}
 
 
 
@@ -292,6 +304,7 @@ console.log(notificationResult);
 
 module.exports = {
     getAllBloodBankData,
+    getUserBloodBankRequest,
     addBloodDonor,
     getBloodGroupSummary,
     getBloodGroupData,
