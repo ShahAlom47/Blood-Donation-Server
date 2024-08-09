@@ -243,6 +243,48 @@ const rejectBloodBankRequest = async (req, res) => {
     }
 };
 
+// accept  request 
+
+
+const acceptBloodBankRequest = async (req, res) => {
+    const id = req.params.id;
+    const notificationData  = req.body;
+    const requesterEmail=notificationData?.requesterEmail;
+
+    // console.log(notificationData);
+
+    try {
+        const query = { _id: new ObjectId(id) };
+        const updateState={
+            $set:{
+                status:'Accepted',
+            }
+        }
+
+        const updateResult = await bloodBankCollection.updateOne(query, updateState);
+
+        if (updateResult.modifiedCount === 0) {
+            return res.status(500).send('Failed to update blood bank data');
+        }
+
+        const notificationResult = await notificationCollection.insertOne(notificationData);
+
+        if (!notificationResult.insertedId) {
+            return res.status(500).send('Failed to insert notification');
+        }
+console.log(notificationResult);
+        return res.status(200).send({
+            status:true,
+            message: 'Blood request Accepted and notification sent successfully',
+            updateResult,
+            notificationResult
+        });
+    } catch (error) {
+        console.error('Error updating blood bank data and adding notification:', error);
+        res.status(500).send('Internal Server Error');
+    }
+};
+
 
 
 
@@ -256,4 +298,5 @@ module.exports = {
     updateBloodBankDataState,
     deleteBloodBankData,
     rejectBloodBankRequest,
+    acceptBloodBankRequest,
 }

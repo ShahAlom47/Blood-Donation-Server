@@ -9,11 +9,14 @@ const userNotification = async (req, res) => {
   const query = {
     $or: [
       { type: "donation_interest", requesterEmail: email },
+      { type: "blood_bank_blood_request", requesterEmail: email },
+      { type: "blood_bank_blood_request", donorEmail: email },
       { type: "donation_accept", donorEmail: email },
+
+
       { type: "donation_received", recipientEmail: email },
       { type: "new_message", userEmail: email },
       { type: "event_invitation", inviteeEmail: email },
-      { type: "friend_request", requestedEmail: email },
       { type: "comment_reply", commentOwnerEmail: email },
       { type: "like_notification", likedUserEmail: email },
       { type: "group_invite", invitedEmail: email },
@@ -42,10 +45,10 @@ const allNotification = async (req, res) => {
 
   const query = {
     $or: [
+      { type: "blood_bank_blood_request", },
       { type: "donation_interest", },
       { type: "donation_accept",  },
       { type: "donation_received", },
-      { type: "blood_bank_blood_request", },
      
     ]
   };
