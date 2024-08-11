@@ -54,8 +54,8 @@ const getAllBloodBankData = async (req, res) => {
             currentPage: parseInt(page)
         });
     } catch (error) {
-        console.error(error);
-        return res.status(500).send('Server Error');
+   
+        return res.status(500).send('Server Error',error);
     }
 };
 
@@ -146,7 +146,7 @@ const updateBloodBankDataState = async (req, res) => {
         requesterEmail: notificationData?.requesterEmail,
         requesterPhone: notificationData?.requesterPhone,
     };
-    console.log(requesterData);
+   
 
     try {
         const query = { _id: new ObjectId(id) };
@@ -177,8 +177,7 @@ const updateBloodBankDataState = async (req, res) => {
         return res.send({ status: false, message: 'Status update failed' });
 
     } catch (error) {
-        console.error('Error updating blood bank data and adding notification:', error);
-        res.status(500).send('Internal Server Error');
+        res.status(500).send('Internal Server Error',error);
     }
 };
 
@@ -191,14 +190,13 @@ const deleteBloodBankData = async (req, res) => {
     try {
         const query = { _id: new ObjectId(id) }
         const response = await bloodBankCollection.deleteOne(query)
-        console.log(response);
+  
         return res.send(response)
     }
 
 
 
     catch (error) {
-    console.error('Error updating blood bank data and adding notification:', error);
     res.status(500).send('Internal Server Error');
 }
 }
@@ -250,7 +248,6 @@ const rejectBloodBankRequest = async (req, res) => {
             notificationResult
         });
     } catch (error) {
-        console.error('Error updating blood bank data and adding notification:', error);
         res.status(500).send('Internal Server Error');
     }
 };
@@ -260,42 +257,37 @@ const rejectBloodBankRequest = async (req, res) => {
 
 const acceptBloodBankRequest = async (req, res) => {
     const id = req.params.id;
-    const notificationData  = req.body;
-    const requesterEmail=notificationData?.requesterEmail;
-
-    // console.log(notificationData);
+    const { requesterEmail } = req.body;
 
     try {
         const query = { _id: new ObjectId(id) };
-        const updateState={
-            $set:{
-                status:'Accepted',
-            }
+        const bloodBankData = await bloodBankCollection.findOne(query);
+
+        if (!bloodBankData) {
+            return res.status(404).send('Blood bank data not found');
         }
 
-        const updateResult = await bloodBankCollection.updateOne(query, updateState);
+        bloodBankData.status = 'Accepted';
+        const requester = bloodBankData.requester.find(
+            req => req.requesterEmail === requesterEmail
+        );
 
-        if (updateResult.modifiedCount === 0) {
-            return res.status(500).send('Failed to update blood bank data');
+        if (requester) {
+            requester.status = 'selected';
         }
 
-        const notificationResult = await notificationCollection.insertOne(notificationData);
+        const updateResult = await bloodBankCollection.replaceOne(query, bloodBankData);
 
-        if (!notificationResult.insertedId) {
-            return res.status(500).send('Failed to insert notification');
-        }
-console.log(notificationResult);
         return res.status(200).send({
-            status:true,
-            message: 'Blood request Accepted and notification sent successfully',
-            updateResult,
-            notificationResult
+            status: true,
+            message: 'Blood request accepted and status updated successfully',
+            updateResult
         });
     } catch (error) {
-        console.error('Error updating blood bank data and adding notification:', error);
         res.status(500).send('Internal Server Error');
     }
 };
+
 
 // cancel user blood bank request 
 
@@ -303,21 +295,81 @@ const cancelUserBloodBankRequest = async (req, res) => {
     const id = req.params.id; 
     const { requesterEmail } = req.body; 
     const query = { _id: new ObjectId(id) };
-    const updateData = {
-        $pull: {
-            requester: { requesterEmail: requesterEmail }
+
+    try {
+        
+        const bloodBankData = await bloodBankCollection.findOne(query);
+
+        if (!bloodBankData) {
+            return res.status(404).send('Blood bank data not found');
         }
-    };
-    const result = await bloodBankCollection.updateOne(query, updateData);
 
-    console.log(id, requesterEmail);
+        const selectedRequester = bloodBankData.requester.find(
+            req => req.requesterEmail === requesterEmail && req.status === 'selected'
+        );
 
-    return res.send({
-        status: true,
-        message: 'Request Cancelled',
-        result
-    });
+        if (selectedRequester) {
+            bloodBankData.status = 'Requested';
+        }
+
+        bloodBankData.requester = bloodBankData.requester.filter(
+            req => req.requesterEmail !== requesterEmail
+        );
+
+        if (bloodBankData.requester.length === 0) {
+            bloodBankData.status = 'Available';
+        }
+
+        const result = await bloodBankCollection.replaceOne(query, bloodBankData);
+
+        return res.send({
+            status: true,
+            message: 'Request Cancelled',
+            result
+        });
+
+    } catch (error) {
+        res.status(500).send('Internal Server Error');
+    }
+};
+
+
+// complete donation 
+
+
+const completeUserBloodBankRequest = async (req, res) => {
+    const id = req.params.id;
+    const { requesterEmail } = req.body;
+
+    try {
+        const query = { _id: new ObjectId(id) };
+        const update = {
+            $set: {
+                "requester.$[elem].status": "completed", 
+                status: "completed" 
+            }
+        };
+        const arrayFilters = [{ "elem.requesterEmail": requesterEmail }]; 
+
+    
+        const result = await bloodBankCollection.updateOne(
+            query,
+            update,
+            { arrayFilters } 
+        );
+
+
+        if (result.modifiedCount > 0) {
+            res.status(200).send({status:true,message:'Request completed successfully'});
+        } else {
+            res.status(404).send('No matching request found');
+        }
+    } catch (error) {
+        console.error("Error updating document:", error);
+        res.status(500).send('Internal Server Error');
+    }
 }
+
 
 
 
@@ -333,4 +385,5 @@ module.exports = {
     rejectBloodBankRequest,
     acceptBloodBankRequest,
     cancelUserBloodBankRequest,
+    completeUserBloodBankRequest,
 }
