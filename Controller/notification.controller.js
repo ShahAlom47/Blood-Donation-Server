@@ -1,3 +1,4 @@
+const { ObjectId } = require("mongodb");
 const { getNotificationCollection } = require("../utils/AllDB_Collections/NotificationCollection");
 
 
@@ -66,6 +67,28 @@ const allNotification = async (req, res) => {
   }
 };
 
+const updateNotificationStatus = async (req, res) => {
+  const id = req.params.id;
+
+  try {
+    const query = { _id: new ObjectId(id) };
+    const updateDoc = {
+      $set: { status: 'read' }
+    };
+    const result = await notificationCollection.updateOne(query, updateDoc);
+
+    if (result.modifiedCount === 0) {
+      return res.send({state:false, message: "Notification not found or already marked as read" });
+    }
+
+    // Return the result
+    return res.send({ state:true, message: "Notification status updated to 'read'", result });
+  } catch (error) {
+    // Handle any errors
+    console.error("Error updating notification status:", error);
+    return res.status(500).send({state:false, message: "Internal Server Error", error });
+  }
+};
 
 
 // Add notification   
@@ -85,4 +108,5 @@ module.exports = {
   userNotification,
   addNotification,
   allNotification,
+  updateNotificationStatus,
 };

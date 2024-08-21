@@ -130,7 +130,11 @@ const getBloodGroupSummary = async (req, res) => {
 
 const getBloodGroupData = async (req, res) => {
     const group = req.params.group;
-    const result = await bloodBankCollection.find({ bloodGroup: group }).toArray()
+    const result = await bloodBankCollection.find({
+         bloodGroup:group ,
+         status:{$ne:"completed"}
+        
+        }).toArray()
 
 
     return res.send(result)

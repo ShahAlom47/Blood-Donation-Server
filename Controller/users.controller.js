@@ -67,6 +67,10 @@ const login = async (req, res) => {
 const isLogin = async (req, res) => {
   try {
     const token = req.body.token;
+    if (!token) {
+      return res.status(400).send({ message: 'Token is missing' });
+    }
+    
     const decoded = jwt.verify(token, process.env.ACCESS_TOKEN);
     const email = decoded.data;
 
@@ -74,16 +78,18 @@ const isLogin = async (req, res) => {
 
     if (existingUser) {
       const { password, ...userWithoutPassword } = existingUser;
-
       res.send({ message: 'User is logged in', user: userWithoutPassword });
     } else {
       res.sendStatus(404);
     }
   } catch (error) {
-    console.error('Error fetching user:', error);
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).send({ message: 'Token expired' });
+    }
     res.sendStatus(500);
   }
 }
+
 
 
 const updateUserData = async (req, res) => {

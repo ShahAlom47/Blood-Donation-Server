@@ -15,7 +15,9 @@ const server = http.createServer(app);
 // Create Socket.io instance
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:5173", "http://localhost:5174"],
+    origin: ["http://localhost:5173", 
+      "http://localhost:5174",
+      'https://blood-donation-client-zeta.vercel.app'],
     credentials: true,
   }
 });
@@ -23,7 +25,9 @@ const io = new Server(server, {
 // Middleware
 app.use(express.json());
 app.use(cors({
-    origin: ["http://localhost:5173", "http://localhost:5174"],
+    origin: ["http://localhost:5173",
+       "http://localhost:5174",
+       'https://blood-donation-client-zeta.vercel.app'],
     credentials: true,
 }));
 app.use(cookieParser());

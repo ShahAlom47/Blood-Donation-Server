@@ -5,6 +5,7 @@ const verifyAdmin = async (req, res, next) => {
     const tokenEmail = req.email;
     const query = { email: tokenEmail }
     const result = await usersCollection.findOne(query)
+    console.log(result);
     const isAdmin = result?.role === 'admin'
 
     if (!isAdmin) {
