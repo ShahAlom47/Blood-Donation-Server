@@ -6,7 +6,7 @@ const getStripeSecretKey=async (req, res) => {
         const { price } = req.body;
         const amount = parseInt(100 * price);
         const MAX_AMOUNT = 99999999; // in the smallest currency unit, for AED this is 999,999.99 AED
-    console.log(price);
+    
         if (amount > MAX_AMOUNT) {
           return res.status(400).send({ error: 'Amount must be no more than 999,999 AED' });
         }

@@ -66,42 +66,17 @@ const donationRoutes = require('./Routes/donation.router');
 const notificationRoutes = require('./Routes/notification.router');
 const bloodBankRoutes =  require('./Routes/bloodBank.router');
 const paymentRoutes =  require('./Routes/payment.router');
+const moneyDonation =  require('./Routes/moneyDonation.router');
 
 
 app.use('/user', userRoutes);
 app.use('/donation', donationRoutes);
+app.use('/moneyDonation', moneyDonation);
 app.use('/notification', notificationRoutes );
 app.use('/bloodBank', bloodBankRoutes );
 app.use('/payment', paymentRoutes );
 
 
-// ================================
-// app.post("/create-payment-intent", async (req, res) => {
-//   try {
-//     const { price } = req.body;
-//     const amount = parseInt(100 * price);
-//     const MAX_AMOUNT = 99999999; // in the smallest currency unit, for AED this is 999,999.99 AED
-
-//     if (amount > MAX_AMOUNT) {
-//       return res.status(400).send({ error: 'Amount must be no more than 999,999 AED' });
-//     }
-
-//     // Create a PaymentIntent with the order amount and currency
-//     const paymentIntent = await stripe.paymentIntents.create({
-//       amount: amount,
-//       currency: "bdt",
-//       payment_method_types: ["card"],
-//     });
-
-//     res.send({
-//       clientSecret: paymentIntent.client_secret,
-//     });
-//   } catch (error) {
-//     console.error('Error creating payment intent:', error);
-//     res.status(500).send({ error: 'Failed to create payment intent' });
-//   }
-// });
-// ================================
 
 
 

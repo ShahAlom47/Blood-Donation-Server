@@ -13,9 +13,9 @@ const userNotification = async (req, res) => {
       { type: "blood_bank_blood_request", requesterEmail: email },
       { type: "blood_bank_blood_request", donorEmail: email },
       { type: "donation_accept", donorEmail: email },
+      { type: "moneyDonation", donorEmail: email },
 
 
-      { type: "donation_received", recipientEmail: email },
       { type: "new_message", userEmail: email },
       { type: "event_invitation", inviteeEmail: email },
       { type: "comment_reply", commentOwnerEmail: email },
@@ -50,6 +50,7 @@ const allNotification = async (req, res) => {
       { type: "donation_interest", },
       { type: "donation_accept",  },
       { type: "donation_received", },
+      { type: "moneyDonation", },
      
     ]
   };
