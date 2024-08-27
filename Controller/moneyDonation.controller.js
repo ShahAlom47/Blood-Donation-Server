@@ -1,12 +1,16 @@
 
 
+
+const addNotification = require("../utils/addNotification");
 const { getMoneyDonateCollection } = require("../utils/AllDB_Collections/moneyDonteCollection");
 const { getNotificationCollection } = require("../utils/AllDB_Collections/NotificationCollection");
+const { getUserCollection } = require("../utils/AllDB_Collections/userCollection");
 
 
 
 const moneyDonationCollection = getMoneyDonateCollection()
 const notificationCollection= getNotificationCollection()
+const userCollection= getUserCollection()
 
 // add donation 
 
@@ -43,8 +47,101 @@ const addMoneyDonation = async (req, res) => {
       });
     }
   };
+
+
+  //   add  monthly donation 
+
+
+  const addMonthlyDonation = async (req, res) => {
+    try {
+      const donationData = req.body;
+      const {
+        donorEmail,
+        donationType,
+        monthlyAmount,
+        donationHistory,
+        lastDonationDate,
+      } = donationData;
+  
+      const notificationData = {
+        donorEmail: donationData.donorEmail,
+        donorName: donationData.donorName,
+        message: `Thank you, ${donationData.donorName}, for your generous donation of $${donationData.amount}! Your support means a lot to us.`,
+        type: "moneyDonation",
+        status: "unread",
+        timestamp: new Date(),
+      };
+  
+     
+      const existingDonor = await moneyDonationCollection.findOne({
+        donorEmail: donorEmail,
+        donationType: donationType,
+      });
+  
+      if (existingDonor) {
+        const updatedDonationHistory = [...existingDonor.donationHistory, ...donationHistory];
+  
+   
+        const updateResult = await moneyDonationCollection.updateOne(
+          { donorEmail: donorEmail, donationType: donationType },
+          {
+            $set: {
+              lastDonationDate: lastDonationDate,
+              donationHistory: updatedDonationHistory,
+            },
+          }
+        );
+  
+        if (updateResult.modifiedCount > 0) {
+
+          const addNotificationRes = await addNotification(notificationData);
+  
+            if (addNotificationRes.insertedId) {
+              res.status(200).json({ status: true, message: 'Your Donation is Complete.' });
+            } else {
+              res.status(500).json({ status: false, message: 'Failed to send notification.' });
+            }
+        }
+  
+      } else {
+      
+  
+        const newMonthlyDonorAddRes = await moneyDonationCollection.insertOne(donationData);
+  
+        if (newMonthlyDonorAddRes.insertedId) {
+          const query = { email: donorEmail };
+          const updateData = {
+            $set: {
+              monthlyDonation: 'active',
+              donationAmount: monthlyAmount,
+            },
+          };
+  
+          const updateUserData = await userCollection.updateOne(query, updateData);
+  
+          if (updateUserData.modifiedCount > 0) {
+            const addNotificationRes = await addNotification(notificationData);
+  
+            if (addNotificationRes.insertedId) {
+              res.status(200).json({ status: true, message: 'Your Donation is Complete.' });
+            } else {
+              res.status(500).json({ status: false, message: 'Failed to send notification.' });
+            }
+          } else {
+            res.status(500).json({ status: false, message: 'Failed to update user data.' });
+          }
+        } else {
+          res.status(500).json({ status: false, message: 'Failed to add new donor data.' });
+        }
+      }
+    } catch (error) {
+      console.error('Error processing donation:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  };
   
 
+  // yearly total donation 
 
   const getYearlyTotalDonation = async (req, res) => {
     try {
@@ -101,5 +198,8 @@ const addMoneyDonation = async (req, res) => {
 
 module.exports = {
     addMoneyDonation,
-getYearlyTotalDonation
+getYearlyTotalDonation,
+addMonthlyDonation,
 }
+
+
