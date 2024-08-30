@@ -7,7 +7,6 @@ const { getNotificationCollection } = require("../utils/AllDB_Collections/Notifi
 const { getUserCollection } = require("../utils/AllDB_Collections/userCollection");
 
 
-
 const moneyDonationCollection = getMoneyDonateCollection()
 const notificationCollection = getNotificationCollection()
 const userCollection = getUserCollection()
@@ -253,6 +252,40 @@ const getYearlyTotalDonation = async (req, res) => {
   }
 };
 
+//  user total donation summary 
+
+const getUserDonationSummary = async (req, res) => {
+  try {
+      const email = req.params.email;
+
+      const oneTimeDonations = await moneyDonationCollection.aggregate([
+          { $match: { donorEmail: email, donationType: 'oneTimeDonation' } },
+          { $group: { _id: null, totalOneTimeAmount: { $sum: "$amount" } } }
+      ]).toArray();
+
+    
+      const monthlyDonations = await moneyDonationCollection.aggregate([
+          { $match: { donorEmail: email, donationType: 'monthlyDonation' } },
+          { $unwind: "$donationHistory" },
+          { $group: { _id: null, totalMonthlyAmount: { $sum: "$donationHistory.amount" } } }
+      ]).toArray();
+
+  
+      const result = {
+          oneTimeDonation: oneTimeDonations[0]?.totalOneTimeAmount || 0,
+          monthlyDonation: monthlyDonations[0]?.totalMonthlyAmount || 0
+      };
+      res.send(result);
+
+  } catch (error) {
+    
+      console.error('Error fetching donation summary:', error);
+      res.status(500).send({
+          status: false,
+          message: 'An error occurred while fetching the donation summary.'
+      });
+  }
+};
 
 
 
@@ -263,6 +296,7 @@ module.exports = {
   addMonthlyDonation,
   getSingleUserMonthlyDonation,
   updateMonthlyDonationAmount,
+  getUserDonationSummary,
 }
 
 
