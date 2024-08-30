@@ -141,6 +141,46 @@ const addMonthlyDonation = async (req, res) => {
 };
 
 
+// update donation amount 
+
+
+const updateMonthlyDonationAmount = async (req, res) => {
+  try {
+    const email = req.params.email;
+    const { amount } = req.body;
+
+    const userQuery = { email };
+    const donorQuery = { 
+      donorEmail: email,
+      donationType:'monthlyDonation',
+     };
+    
+    const userUpdateData = { $set: { donationAmount: amount } };
+    const donorUpdateData = { $set: { monthlyAmount: amount } };
+
+   
+    const updateUserData = await userCollection.updateMany(userQuery, userUpdateData);
+    if (updateUserData.modifiedCount === 0) {
+      return res.status(404).send({ status: false, message: 'User not found or amount is already updated' });
+    }
+
+   
+    const updateDonorData = await moneyDonationCollection.updateOne(donorQuery, donorUpdateData);
+    if (updateDonorData.modifiedCount === 0) {
+      return res.status(404).send({ status: false, message: 'Donor not found or amount is already updated' });
+    }
+
+    // Successful update
+    return res.send({ status: true, message: 'Your amount was successfully updated' });
+
+  } catch (error) {
+    
+    console.error('Error updating donation amount:', error);
+    return res.status(500).send({ status: false, message: 'An error occurred while updating the amount' });
+  }
+};
+
+
 // get user monthly donation single  data 
 
 const getSingleUserMonthlyDonation = async (req, res) => {
@@ -222,6 +262,7 @@ module.exports = {
   getYearlyTotalDonation,
   addMonthlyDonation,
   getSingleUserMonthlyDonation,
+  updateMonthlyDonationAmount,
 }
 
 
