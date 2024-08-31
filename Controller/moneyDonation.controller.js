@@ -288,6 +288,49 @@ const getUserDonationSummary = async (req, res) => {
 };
 
 
+const getUserDonationHistory = async (req, res) => {
+  try {
+    const userEmail = req.params.email;
+
+    const oneTimeDonations = await moneyDonationCollection
+      .find({ donorEmail: userEmail, donationType: "oneTimeDonation" })
+      .toArray();
+
+    const monthlyDonations = await moneyDonationCollection
+      .find({ donorEmail: userEmail, donationType: "monthlyDonation" })
+      .toArray();
+
+    let allDonations = [...oneTimeDonations];
+
+    monthlyDonations.forEach((monthlyDonation) => {
+      if (monthlyDonation.donationHistory && monthlyDonation.donationHistory.length > 0) {
+        monthlyDonation.donationHistory.forEach((history) => {
+          allDonations.push({
+            _id: monthlyDonation._id,
+            donorName: monthlyDonation.donorName,
+            donorEmail: monthlyDonation.donorEmail,
+            donorPhone: monthlyDonation.donorPhone,
+            date: history.donateDate || monthlyDonation.date,
+            donationMonth:history.donationMonth || 'One Time',
+            amount: monthlyDonation.monthlyAmount,
+            category: monthlyDonation.category,
+            donationType: monthlyDonation.donationType,
+            paymentType: monthlyDonation.paymentType || "unknown",
+            transactionId: monthlyDonation.transactionId || "unknown",
+          });
+        });
+      }
+    });
+
+    res.send(allDonations);
+  } catch (error) {
+    console.error("Error retrieving donation history:", error);
+    res.status(500).send("Failed to get donation history.");
+  }
+};
+
+
+
 
 
 module.exports = {
@@ -297,6 +340,7 @@ module.exports = {
   getSingleUserMonthlyDonation,
   updateMonthlyDonationAmount,
   getUserDonationSummary,
+  getUserDonationHistory,
 }
 
 
