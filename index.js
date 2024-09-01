@@ -51,6 +51,8 @@ io.on('connection', (socket) => {
 });
 
 
+//  monthly donation reminder start
+
 // 0: মিনিটের জন্য (০ মিনিট)
 // 0: ঘণ্টার জন্য (মধ্যরাত ১২টা)
 // 1: মাসের প্রথম দিন
@@ -59,21 +61,13 @@ io.on('connection', (socket) => {
 // মাসের প্রথম দিন (১ তারিখ) রাত ১২টা ০ মিনিটে চলবে
 cron.schedule('0 0 1 * *', async () => {
   try {
-    console.log('ক্রন জব চলতে শুরু করেছে...');
-
-    
-    await myMonthlyFunction();
-
+    await  sendDonationRemainderEmail();
   } catch (error) {
-    console.error('ক্রন জব চলাকালীন ত্রুটি:', error);
+    console.error( error);
   }
 });
 
-app.post('/ccc', async (req, res) => {
-  sendDonationRemainderEmail()
-
-})
-
+//  monthly donation reminder start
 
 
 

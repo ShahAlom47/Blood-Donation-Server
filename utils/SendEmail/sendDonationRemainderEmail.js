@@ -33,7 +33,7 @@ const checkAndSendReminder = async () => {
 
       const lastDonationMonth = donationHistory.length > 0 ? donationHistory[donationHistory.length - 1].donationMonth : '';
 
-      if (lastDonationMonth !== previousMonth) {
+      if (lastDonationMonth === previousMonth) {
         const mailOptions = {
           from: 'redloveservice@gmail.com',
           to: donorEmail,
