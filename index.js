@@ -11,7 +11,8 @@ const { connect } = require('./utils/DB-connect');
 // stripe  payment 
 const stripe = require('stripe')(process.env.STRIPE_KEY);
 app.use(express.static('public'));
-
+const cron = require('node-cron');
+const sendDonationRemainderEmail = require('./utils/SendEmail/sendDonationRemainderEmail')
 
 // Create HTTP server
 const server = http.createServer(app);
@@ -48,6 +49,33 @@ io.on('connection', (socket) => {
     socket.join(email);
   });
 });
+
+
+// 0: মিনিটের জন্য (০ মিনিট)
+// 0: ঘণ্টার জন্য (মধ্যরাত ১২টা)
+// 1: মাসের প্রথম দিন
+// *: মাসের যেকোনো মাস
+// *: সপ্তাহের যেকোনো দিন
+// মাসের প্রথম দিন (১ তারিখ) রাত ১২টা ০ মিনিটে চলবে
+cron.schedule('0 0 1 * *', async () => {
+  try {
+    console.log('ক্রন জব চলতে শুরু করেছে...');
+
+    
+    await myMonthlyFunction();
+
+  } catch (error) {
+    console.error('ক্রন জব চলাকালীন ত্রুটি:', error);
+  }
+});
+
+app.post('/ccc', async (req, res) => {
+  sendDonationRemainderEmail()
+
+})
+
+
+
 
 // JWT related API
 app.post('/jwt', async (req, res) => {

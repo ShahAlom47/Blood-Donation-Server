@@ -95,6 +95,7 @@ const updateNotificationStatus = async (req, res) => {
 // Add notification   
 
 const addNotification = async (notificationData) => {
+
   try {
       const result = await notificationCollection.insertOne(notificationData);
       return result;
