@@ -4,69 +4,76 @@ const { getNotificationCollection } = require("../utils/AllDB_Collections/Notifi
 
 const notificationCollection = getNotificationCollection();
 
-const userNotification = async (req, res) => {
+
+
+const fetchNotifications = async (req, res, userRole, email) => {
+  let query = {};
+
+  if (userRole === 'user') {
+    query = {
+      $or: [
+        { type: "donation_interest", requesterEmail: email },
+        { type: "blood_bank_blood_request", requesterEmail: email },
+        { type: "blood_bank_blood_request", donorEmail: email },
+        { type: "donation_accept", donorEmail: email },
+        { type: "moneyDonation", donorEmail: email },
+        { type: "new_message", userEmail: email },
+        { type: "event_invitation", inviteeEmail: email },
+        { type: "comment_reply", commentOwnerEmail: email },
+        { type: "like_notification", likedUserEmail: email },
+        { type: "group_invite", invitedEmail: email },
+        { type: "promotion_notification", userEmail: email }
+      ]
+    };
+  } else if (userRole === 'admin') {
+    query = {
+      $or: [
+        { type: "blood_bank_blood_request" },
+        { type: "donation_interest" },
+        { type: "donation_accept" },
+        { type: "donation_received" },
+        { type: "moneyDonation" }
+      ]
+    };
+  }
+
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 20;
+  const skip = (page - 1) * limit;
+
+  try {
+    const notifications = await notificationCollection
+      .find(query)
+      .sort({ timestamp: -1 })
+      .skip(skip)
+      .limit(limit)
+      .toArray();
+
+    const total = await notificationCollection.countDocuments(query);
+    const pages = Math.ceil(total / limit);
+
+    return res.send({ notifications, total, pages });
+  } catch (error) {
+    console.error('Error fetching notifications:', error);
+    return res.status(500).send({ success: false, error: 'Failed to fetch notifications' });
+  }
+};
+
+// For user notifications
+const userNotification = (req, res) => {
   const email = req.params.email;
+  fetchNotifications(req, res, 'user', email);
+};
 
-  const query = {
-    $or: [
-      { type: "donation_interest", requesterEmail: email },
-      { type: "blood_bank_blood_request", requesterEmail: email },
-      { type: "blood_bank_blood_request", donorEmail: email },
-      { type: "donation_accept", donorEmail: email },
-      { type: "moneyDonation", donorEmail: email },
-
-
-      { type: "new_message", userEmail: email },
-      { type: "event_invitation", inviteeEmail: email },
-      { type: "comment_reply", commentOwnerEmail: email },
-      { type: "like_notification", likedUserEmail: email },
-      { type: "group_invite", invitedEmail: email },
-      { type: "promotion_notification", userEmail: email }
-    ]
-  };
-
-  try {
-    const interestedNotification = await notificationCollection
-      .find(query)
-      .sort({ timestamp: -1 })
-      .limit(20)
-      .toArray();
-    return res.send(interestedNotification);
-  } catch (error) {
-    console.error('Error fetching notifications:', error);
-    return res.status(500).send({ success: false, error: 'Failed to fetch notifications' });
-  }
+// For admin notifications
+const allNotification = (req, res) => {
+  fetchNotifications(req, res, 'admin');
 };
 
 
-// alll natification for admin 
-
-const allNotification = async (req, res) => {
 
 
-  const query = {
-    $or: [
-      { type: "blood_bank_blood_request", },
-      { type: "donation_interest", },
-      { type: "donation_accept",  },
-      { type: "donation_received", },
-      { type: "moneyDonation", },
-     
-    ]
-  };
 
-  try {
-    const interestedNotification = await notificationCollection
-      .find(query)
-      .sort({ timestamp: -1 })
-      .limit(20)
-      .toArray();
-    return res.send(interestedNotification);
-  } catch (error) {
-    console.error('Error fetching notifications:', error);
-    return res.status(500).send({ success: false, error: 'Failed to fetch notifications' });
-  }
-};
 
 const updateNotificationStatus = async (req, res) => {
   const id = req.params.id;
@@ -82,10 +89,8 @@ const updateNotificationStatus = async (req, res) => {
       return res.send({state:false, message: "Notification not found or already marked as read" });
     }
 
-    // Return the result
     return res.send({ state:true, message: "Notification status updated to 'read'", result });
   } catch (error) {
-    // Handle any errors
     console.error("Error updating notification status:", error);
     return res.status(500).send({state:false, message: "Internal Server Error", error });
   }

@@ -91,7 +91,7 @@ const updateDonationRequest = async (req, res) => {
       
         req.io.to(notificationData.requesterEmail).emit('notification', notification);
 
-        console.log(data);
+     
         return res.send({ success: true, message: 'Thank you for volunteering to donate blood!', data: data });
     } catch (error) {
         console.error('Error updating donation request:', error);

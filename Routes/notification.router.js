@@ -5,8 +5,8 @@ const  verifyAdmin =require('../Middleware/verifyAdmin')
 const  verifyToken =require('../Middleware/verifyToken')
 
 
-router.get('/getUserNotification/:email',userNotification);
-router.get('/getAllNotification',verifyToken,allNotification);
+router.get('/getUserNotification/:email',verifyToken,userNotification);
+router.get('/getAllNotification',verifyToken,verifyAdmin,allNotification);
 router.patch('/updateNotificationStatus/:id',verifyToken,updateNotificationStatus);
 
 module.exports=router;

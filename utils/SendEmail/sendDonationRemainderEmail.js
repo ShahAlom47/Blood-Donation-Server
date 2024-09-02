@@ -53,7 +53,6 @@ const checkAndSendReminder = async () => {
         await addNotification(notificationData);
         await transporter.sendMail(mailOptions);
 
-        console.log(`Reminder sent to ${donorEmail}`);
       }
     }
   } catch (error) {
