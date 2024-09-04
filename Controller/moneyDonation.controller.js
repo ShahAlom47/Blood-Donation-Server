@@ -286,7 +286,45 @@ const getUserDonationSummary = async (req, res) => {
       });
   }
 };
+  
+// all donation summary for admin dashboard 
+const totalDonationSummary = async (req, res) => {
+  try {
+      // One-time Donations: Calculate total amount and total donors
+      const oneTimeDonations = await moneyDonationCollection.aggregate([
+          { $match: { donationType: 'oneTimeDonation' } },
+          { $group: { _id: "$donorEmail", totalOneTimeAmount: { $sum: "$amount" } } },
+          { $group: { _id: null, totalOneTimeAmount: { $sum: "$totalOneTimeAmount" }, totalOneTimeDonors: { $sum: 1 } } }
+      ]).toArray();
 
+      // Monthly Donations: Calculate total amount and total donors
+      const monthlyDonations = await moneyDonationCollection.aggregate([
+          { $match: { donationType: 'monthlyDonation' } },
+          { $unwind: "$donationHistory" },
+          { $group: { _id: "$donorEmail", totalMonthlyAmount: { $sum: "$donationHistory.amount" } } },
+          { $group: { _id: null, totalMonthlyAmount: { $sum: "$totalMonthlyAmount" }, totalMonthlyDonors: { $sum: 1 } } }
+      ]).toArray();
+
+      const result = {
+          oneTimeDonation: oneTimeDonations[0]?.totalOneTimeAmount || 0,
+          oneTimeDonor: oneTimeDonations[0]?.totalOneTimeDonors || 0,
+          monthlyDonation: monthlyDonations[0]?.totalMonthlyAmount || 0,
+          monthlyDonor: monthlyDonations[0]?.totalMonthlyDonors || 0
+      };
+
+      res.send(result);
+
+  } catch (error) {
+      console.error('Error fetching donation summary:', error);
+      res.status(500).send({
+          status: false,
+          message: 'An error occurred while fetching the donation summary.'
+      });
+  }
+};
+
+
+//  user donation details 
 
 const getUserDonationHistory = async (req, res) => {
   try {
@@ -329,6 +367,74 @@ const getUserDonationHistory = async (req, res) => {
   }
 };
 
+// all user donation histroy for Admin 
+
+const getAllMoneyDonationHistory = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = Math.floor(parseInt(req.query.limit)/2) || 5;
+    const skip = (page - 1) * limit;
+
+   
+    const oneTimeDonationCount = await moneyDonationCollection
+      .countDocuments({ donationType: "oneTimeDonation" });
+
+
+    const monthlyDonationCount = await moneyDonationCollection
+      .countDocuments({ donationType: "monthlyDonation" });
+
+    const totalDonationsCount = oneTimeDonationCount + monthlyDonationCount;
+
+   
+    const oneTimeDonations = await moneyDonationCollection
+      .find({ donationType: "oneTimeDonation" })
+      .skip(skip)
+      .limit(limit)
+      .toArray();
+
+ 
+    const monthlyDonations = await moneyDonationCollection
+      .find({ donationType: "monthlyDonation" })
+      .skip(skip)
+      .limit(limit)
+      .toArray();
+
+    let allDonations = [...oneTimeDonations];
+
+    monthlyDonations.forEach((monthlyDonation) => {
+      if (monthlyDonation.donationHistory && monthlyDonation.donationHistory.length > 0) {
+        monthlyDonation.donationHistory.forEach((history) => {
+          allDonations.push({
+            _id: monthlyDonation._id,
+            donorName: monthlyDonation.donorName,
+            donorEmail: monthlyDonation.donorEmail,
+            donorPhone: monthlyDonation.donorPhone,
+            date: history.donateDate || monthlyDonation.date,
+            donationMonth: history.donationMonth || 'One Time',
+            amount: monthlyDonation.monthlyAmount,
+            category: monthlyDonation.category,
+            donationType: monthlyDonation.donationType,
+            paymentType: monthlyDonation.paymentType || "unknown",
+            transactionId: monthlyDonation.transactionId || "unknown",
+          });
+        });
+      }
+    });
+
+    res.send({
+      data: allDonations,
+      totalPages: Math.ceil(totalDonationsCount / limit),
+      currentPage: page
+    });
+
+  } catch (error) {
+    console.error("Error retrieving donation history:", error);
+    res.status(500).send("Failed to get donation history.");
+  }
+};
+
+
+
 
 
 
@@ -341,6 +447,8 @@ module.exports = {
   updateMonthlyDonationAmount,
   getUserDonationSummary,
   getUserDonationHistory,
+  totalDonationSummary,
+  getAllMoneyDonationHistory,
 }
 
 
