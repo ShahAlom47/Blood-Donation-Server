@@ -3,10 +3,12 @@ const bcrypt = require('bcryptjs');
 var jwt = require('jsonwebtoken');
 const { getUserCollection } = require("../utils/AllDB_Collections/userCollection");
 const { ObjectId } = require("mongodb");
+const { getNotificationCollection } = require("../utils/AllDB_Collections/NotificationCollection");
 
 
 
 const usersCollection = getUserCollection()
+const notificationCollection = getNotificationCollection()
 
 
 // Register  
@@ -136,10 +138,83 @@ const updateUserProfilePhoto = async (req, res) => {
 
 }
 
+
+// get all user for admin 
+const getAllUser = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = Math.floor(parseInt(req.query.limit)/2) || 5;
+    const skip = (page - 1) * limit;
+
+   
+    const totalUserCount = await usersCollection.countDocuments();
+
+    const allUserResult = await usersCollection
+      .find()
+      .skip(skip)
+      .limit(limit)
+      .toArray();
+
+    res.send({
+      data: allUserResult,
+      totalPages: Math.ceil(totalUserCount / limit),
+      currentPage: page
+    });
+
+  } catch (error) {
+    console.error("Error retrieving donation history:", error);
+    res.status(500).send("Failed to get donation history.");
+  }
+
+}
+
+// user role update 
+
+const updateUserRole = async (req, res) => {
+  try {
+    const email = req.params.email;
+    const data = req.body;
+
+    const query = { email: email };
+    const role = data?.value;
+
+    const updateData = {
+      $set: { role: data?.value || 'user' }
+    };
+
+ console.log(email,role,data.notificationData);
+
+    const result = await usersCollection.updateOne(query, updateData);
+
+    if (result.modifiedCount <= 0) {
+      res.send({ success: false, message: 'Role update failed' });
+      return;
+    }
+
+    
+    const notiRes = await notificationCollection.insertOne(data.notificationData);
+    if (notiRes.insertedId) {
+      res.send({ success: true, message: 'User role updated successfully' });
+      return;
+    }
+
+    res.send({ success: false, message: 'Role update failed' });
+
+  } catch (error) {
+    console.error("Error updating user role:", error);
+    res.status(500).send("Failed to update user role.");
+  }
+}
+
+
+
+
 module.exports = {
   addUser,
   login,
   isLogin,
   updateUserData,
   updateUserProfilePhoto,
+  getAllUser,
+  updateUserRole,
 }

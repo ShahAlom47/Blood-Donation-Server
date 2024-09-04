@@ -83,7 +83,7 @@ const updateDonationRequest = async (req, res) => {
 
         const notification = {
             ...notificationData,
-            timestamp: new Date(),
+            timestamp: new Date().toISOString(),
         };
 
         await notificationCollection.insertOne(notification);

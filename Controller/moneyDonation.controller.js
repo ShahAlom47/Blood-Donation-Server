@@ -22,7 +22,7 @@ const addMoneyDonation = async (req, res) => {
     message: `Thank you, ${donationData?.donorName}, for your generous donation of $${donationData?.amount}! Your support means a lot to us.`,
     type: "moneyDonation",
     status: "unread",
-    timestamp: new Date()
+    timestamp:  new Date().toISOString()
   };
 
   try {
@@ -68,7 +68,7 @@ const addMonthlyDonation = async (req, res) => {
       message: `Dear ${donationData.donorName}, your donation for ${donationData.donationHistory.length} month(s), totaling $${monthlyAmount * donationData.donationHistory.length}, has been successfully completed. We are deeply grateful for your continuous support and generosity. Thank you for making a difference!`,
       type: "moneyDonation",
       status: "unread",
-      timestamp: new Date(),
+      timestamp:  new Date().toISOString(),
     };
 
 

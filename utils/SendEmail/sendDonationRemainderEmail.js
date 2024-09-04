@@ -48,7 +48,7 @@ const checkAndSendReminder = async () => {
           message: ` Dear ${donor?.donorName},It has been a month since your last donation. The month of your last grant ${lastDonationMonth}. Please consider making your monthly donation to continue supporting our cause.`,
           type: 'moneyDonation',
           status: 'unread',
-          timestamp: new Date()
+          timestamp:  new Date().toISOString()
         };
         await addNotification(notificationData);
         await transporter.sendMail(mailOptions);
