@@ -305,11 +305,22 @@ const totalDonationSummary = async (req, res) => {
           { $group: { _id: null, totalMonthlyAmount: { $sum: "$totalMonthlyAmount" }, totalMonthlyDonors: { $sum: 1 } } }
       ]).toArray();
 
+      const guestDonations = await moneyDonationCollection.aggregate([
+          { $match: {userType:'guest' } },
+          { $group: { _id: "$donorEmail", totalGuestDonationAmount: { $sum: "$amount" } } },
+          { $group: { _id: null, totalGuestDonationAmount: { $sum: "$totalGuestDonationAmount" }, totalGuestDonor: { $sum: 1 } } }
+      ]).toArray();
+
       const result = {
           oneTimeDonation: oneTimeDonations[0]?.totalOneTimeAmount || 0,
           oneTimeDonor: oneTimeDonations[0]?.totalOneTimeDonors || 0,
+
           monthlyDonation: monthlyDonations[0]?.totalMonthlyAmount || 0,
-          monthlyDonor: monthlyDonations[0]?.totalMonthlyDonors || 0
+          monthlyDonor: monthlyDonations[0]?.totalMonthlyDonors || 0,
+          
+          guestDonation: guestDonations[0]?.totalGuestDonationAmount || 0,
+          guestDonor: guestDonations[0]?.totalGuestDonor || 0,
+
       };
 
       res.send(result);

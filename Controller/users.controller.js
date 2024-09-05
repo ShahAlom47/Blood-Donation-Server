@@ -143,7 +143,7 @@ const updateUserProfilePhoto = async (req, res) => {
 const getAllUser = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = Math.floor(parseInt(req.query.limit)/2) || 5;
+    const limit = Math.floor(parseInt(req.query.limit)) || 5;
     const skip = (page - 1) * limit;
 
    
@@ -207,6 +207,27 @@ const updateUserRole = async (req, res) => {
 }
 
 
+const deleteUser = async (req, res) => {
+  const email = req.params.email;
+
+  if (!email) {
+    return res.status(400).send({ status: false, message: 'Email is required' });
+  }
+
+  try {
+  
+    const result = await usersCollection.deleteOne({ email: email });
+
+    if (result.deletedCount > 0) {
+      res.send({ status: true, message: 'User deleted successfully' });
+    } else {
+      res.status(500).send({ status: false, message: 'Failed to delete user' });
+    }
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    res.status(500).send({ status: false, message: 'Internal Server Error' });
+  }
+};
 
 
 module.exports = {
@@ -217,4 +238,5 @@ module.exports = {
   updateUserProfilePhoto,
   getAllUser,
   updateUserRole,
+  deleteUser,
 }
