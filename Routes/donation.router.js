@@ -6,7 +6,8 @@ const {addBloodRequest, getBloodRequest,
      updateDonationRequest, getUserAllRequest,
      updateRequestConfirm,
      getAdminAllRequest,
-     deleteBloodRequest, 
+     deleteBloodRequest,
+     getUserBloodDonationHistory, 
     
     } = require('../Controller/donation.controller');
 
@@ -23,6 +24,7 @@ router.get('/user/allRequest/:email', verifyToken,getUserAllRequest);
 router.patch('/user/confirmDonation/:id', verifyToken,updateRequestConfirm);
 router.get('/admin/allRequest', verifyToken,verifyAdmin ,getAdminAllRequest );
 router.delete('/delete/bloodRequest/:id', verifyToken,deleteBloodRequest );
+router.get('/bloodDonationHistory/:email', verifyToken,getUserBloodDonationHistory );
 
 
 

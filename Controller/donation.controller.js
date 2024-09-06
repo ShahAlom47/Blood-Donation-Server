@@ -5,12 +5,14 @@ var jwt = require('jsonwebtoken');
 const { ObjectId } = require("mongodb");
 const { getNotificationCollection } = require("../utils/AllDB_Collections/NotificationCollection");
 const { getUserCollection } = require("../utils/AllDB_Collections/userCollection");
+const { getBloodBankCollection } = require("../utils/AllDB_Collections/BloodBankCollection");
 
 
 
-const donationCollection = db.collection('donation')
-const notificationCollection = getNotificationCollection()
-const usersCollection= getUserCollection()
+const donationCollection = db.collection('donation');
+const notificationCollection = getNotificationCollection();
+const usersCollection= getUserCollection();
+const bloodBankCollection = getBloodBankCollection();
 
 
 // Blood request 
@@ -183,6 +185,46 @@ const deleteBloodRequest = async (req, res) => {
 }
 
 
+// user blood donation history 
+
+const getUserBloodDonationHistory = async (req, res) => {
+    const email = req.params.email;  
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 5;
+
+    try {
+        let allData = [];
+         const result = await donationCollection
+            .find({ "ConfirmedDonorData.donorEmail": email })
+            .skip((page - 1) * limit)
+            .limit(limit)               
+            .toArray();
+
+         const bankResult = await bloodBankCollection
+            .find({ email: email, status: 'completed', type: 'donor' })
+            .skip((page - 1) * limit)  
+            .limit(limit)               
+            .toArray();
+
+        
+        allData = [...result, ...bankResult];
+
+        // pagination metadata
+        const totalResults = result.length + bankResult.length;
+        const totalPages = Math.ceil(totalResults / limit);
+
+       
+        res.send({
+            data: allData,
+            currentPage: page,
+            totalPages: totalPages,
+            totalResults: totalResults
+        });
+    } catch (error) {
+        res.status(500).send({ message: "Error fetching data", error });
+    }
+}
+
 
 module.exports = {
     addBloodRequest,
@@ -192,5 +234,6 @@ module.exports = {
     updateRequestConfirm,
     getAdminAllRequest,
     deleteBloodRequest,
+    getUserBloodDonationHistory,
 
 }

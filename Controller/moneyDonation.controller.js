@@ -306,7 +306,7 @@ const totalDonationSummary = async (req, res) => {
       ]).toArray();
 
       const guestDonations = await moneyDonationCollection.aggregate([
-          { $match: {userType:'guest' } },
+          { $match: {donationType: 'guestDonation' } },
           { $group: { _id: "$donorEmail", totalGuestDonationAmount: { $sum: "$amount" } } },
           { $group: { _id: null, totalGuestDonationAmount: { $sum: "$totalGuestDonationAmount" }, totalGuestDonor: { $sum: 1 } } }
       ]).toArray();
@@ -378,64 +378,60 @@ const getUserDonationHistory = async (req, res) => {
   }
 };
 
-// all user donation histroy for Admin 
+// all user donation history for Admin 
 
 const getAllMoneyDonationHistory = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = Math.floor(parseInt(req.query.limit)/2) || 5;
+    const limit = Math.floor(parseInt(req.query.limit)) || 5;
     const skip = (page - 1) * limit;
 
-   
-    const oneTimeDonationCount = await moneyDonationCollection
-      .countDocuments({ donationType: "oneTimeDonation" });
+    // Total count of all donations (one-time + monthly)
+    const totalDonationsCount = await moneyDonationCollection.countDocuments();
 
-
-    const monthlyDonationCount = await moneyDonationCollection
-      .countDocuments({ donationType: "monthlyDonation" });
-
-    const totalDonationsCount = oneTimeDonationCount + monthlyDonationCount;
-
-   
-    const oneTimeDonations = await moneyDonationCollection
-      .find({ donationType: "oneTimeDonation" })
+    // Fetching both one-time and monthly donations together
+    const donations = await moneyDonationCollection
+      .find({
+        $or: [
+          { donationType: "oneTimeDonation" },
+          { donationType: "guestDonation" },
+          { donationType: "monthlyDonation" }
+        ]
+      })
       .skip(skip)
       .limit(limit)
       .toArray();
 
- 
-    const monthlyDonations = await moneyDonationCollection
-      .find({ donationType: "monthlyDonation" })
-      .skip(skip)
-      .limit(limit)
-      .toArray();
+    let allDonations = [];
 
-    let allDonations = [...oneTimeDonations];
-
-    monthlyDonations.forEach((monthlyDonation) => {
-      if (monthlyDonation.donationHistory && monthlyDonation.donationHistory.length > 0) {
-        monthlyDonation.donationHistory.forEach((history) => {
+    // Separating monthly donations with donation history
+    donations.forEach((donation) => {
+      if (donation.donationType === "monthlyDonation" && donation.donationHistory && donation.donationHistory.length > 0) {
+        donation.donationHistory.forEach((history) => {
           allDonations.push({
-            _id: monthlyDonation._id,
-            donorName: monthlyDonation.donorName,
-            donorEmail: monthlyDonation.donorEmail,
-            donorPhone: monthlyDonation.donorPhone,
-            date: history.donateDate || monthlyDonation.date,
-            donationMonth: history.donationMonth || 'One Time',
-            amount: monthlyDonation.monthlyAmount,
-            category: monthlyDonation.category,
-            donationType: monthlyDonation.donationType,
-            paymentType: monthlyDonation.paymentType || "unknown",
-            transactionId: monthlyDonation.transactionId || "unknown",
+            _id: donation._id,
+            donorName: donation.donorName,
+            donorEmail: donation.donorEmail,
+            donorPhone: donation.donorPhone,
+            date: history.donateDate || donation.date,
+            donationMonth: history.donationMonth || "One Time",
+            amount: donation.monthlyAmount,
+            category: donation.category,
+            donationType: donation.donationType,
+            paymentType: donation.paymentType || "unknown",
+            transactionId: donation.transactionId || "unknown",
           });
         });
+      } else {
+        // Push one-time or guest donations
+        allDonations.push(donation);
       }
     });
 
     res.send({
       data: allDonations,
       totalPages: Math.ceil(totalDonationsCount / limit),
-      currentPage: page
+      currentPage: page,
     });
 
   } catch (error) {
@@ -443,6 +439,7 @@ const getAllMoneyDonationHistory = async (req, res) => {
     res.status(500).send("Failed to get donation history.");
   }
 };
+
 
 
 
