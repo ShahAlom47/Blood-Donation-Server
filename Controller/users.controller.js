@@ -134,7 +134,7 @@ const updateUserProfilePhoto = async (req, res) => {
   const result=await usersCollection.updateOne(query,updateData)
   return res.send(result)
 
-  console.log(email,photoURL);
+
 
 }
 

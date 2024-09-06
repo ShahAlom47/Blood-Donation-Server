@@ -17,6 +17,8 @@ const fetchNotifications = async (req, res, userRole, email) => {
         { type: "blood_bank_blood_request", donorEmail: email },
         { type: "donation_accept", donorEmail: email },
         { type: "moneyDonation", donorEmail: email },
+        { type: "donationComplete", donorEmail: email },
+        { type: "bloodBankDonationComplete", donorEmail: email },
         { type: "userDataUpdate", userEmail: email },
         
         { type: "new_message", userEmail: email },
@@ -36,6 +38,8 @@ const fetchNotifications = async (req, res, userRole, email) => {
         { type: "donation_received" },
         { type: "moneyDonation" },
         { type: "userDataUpdate" },
+        { type: "bloodBankDonationComplete" },
+        { type: "donationComplete" },
       ]
     };
   }

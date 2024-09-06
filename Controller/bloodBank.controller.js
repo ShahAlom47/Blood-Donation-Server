@@ -151,17 +151,17 @@ const updateBloodBankDataState = async (req, res) => {
         requesterPhone: notificationData?.requesterPhone,
     };
    
-
     try {
         const query = { _id: new ObjectId(id) };
 
-       
+        // Check if requester already exists in the document
         const existingDocument = await bloodBankCollection.findOne(query);
-        if (existingDocument && existingDocument.requester.some(r => r.requesterEmail === requesterData.requesterEmail)) {
-            return res.send({ status: false, message: 'Requester Exist' });
+   
+        if (existingDocument?.requester && existingDocument?.requester.some(r => r.requesterEmail === requesterData.requesterEmail)) {
+            return res.send({ status: false, message: 'Requester Exists' });
         }
 
-        // Update the status
+        // Update the status and push the requester data
         const updateData = {
             $set: {
                 status: status,
@@ -177,13 +177,15 @@ const updateBloodBankDataState = async (req, res) => {
             const notificationResponse = await addNotification(notificationData);
             return res.send({ status: true, message: 'Status updated and notification added successfully' });
         }
-
+console.log(res);
         return res.send({ status: false, message: 'Status update failed' });
 
     } catch (error) {
-        res.status(500).send('Internal Server Error',error);
+        console.log(error);
+        res.status(500).send({ message: 'Internal Server Error', error: error.message });
     }
 };
+
 
 
 
@@ -262,25 +264,36 @@ const rejectBloodBankRequest = async (req, res) => {
 const acceptBloodBankRequest = async (req, res) => {
     const id = req.params.id;
     const { requesterEmail } = req.body;
+    const notificationData = req.body;
 
     try {
         const query = { _id: new ObjectId(id) };
+
+      
         const bloodBankData = await bloodBankCollection.findOne(query);
 
         if (!bloodBankData) {
-            return res.status(404).send('Blood bank data not found');
+            return res.status(404).send({ status: false, message: 'Blood bank data not found' });
         }
 
+        
         bloodBankData.status = 'Accepted';
+
         const requester = bloodBankData.requester.find(
             req => req.requesterEmail === requesterEmail
         );
 
         if (requester) {
             requester.status = 'selected';
+        } else {
+            return res.status(404).send({ status: false, message: 'Requester not found' });
         }
 
-        const updateResult = await bloodBankCollection.replaceOne(query, bloodBankData);
+        
+        const updateResult = await bloodBankCollection.updateOne(query, { $set: bloodBankData });
+
+       
+        await addNotification(notificationData);
 
         return res.status(200).send({
             status: true,
@@ -288,9 +301,11 @@ const acceptBloodBankRequest = async (req, res) => {
             updateResult
         });
     } catch (error) {
-        res.status(500).send('Internal Server Error');
+        console.error('Error accepting blood request:', error);
+        res.status(500).send({ status: false, message: 'Internal Server Error', error: error.message });
     }
 };
+
 
 
 // cancel user blood bank request 
@@ -343,8 +358,19 @@ const cancelUserBloodBankRequest = async (req, res) => {
 
 const completeUserBloodBankRequest = async (req, res) => {
     const id = req.params.id;
-    const { requesterEmail } = req.body;
+    const { requesterEmail,donorEmail,donorName } = req.body;
 
+const   notification= {
+    
+    donorName: donorName,
+    donorEmail: donorEmail,
+    message: `Dear ${donorName},
+    We are delighted to inform you that your recent blood donation has successfully reached someone in need. Your selfless act of kindness has made a significant difference in saving a life. The recipient is truly grateful for your generosity.`,
+    
+    type: 'bloodBankDonationComplete',
+    status: 'unread',
+    timestamp: new Date().toISOString(),
+}
     try {
         const query = { _id: new ObjectId(id) };
         const update = {
@@ -364,6 +390,7 @@ const completeUserBloodBankRequest = async (req, res) => {
 
 
         if (result.modifiedCount > 0) {
+            addNotification(notification);
             res.status(200).send({status:true,message:'Request completed successfully'});
         } else {
             res.status(404).send('No matching request found');

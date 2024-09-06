@@ -6,6 +6,7 @@ const { ObjectId } = require("mongodb");
 const { getNotificationCollection } = require("../utils/AllDB_Collections/NotificationCollection");
 const { getUserCollection } = require("../utils/AllDB_Collections/userCollection");
 const { getBloodBankCollection } = require("../utils/AllDB_Collections/BloodBankCollection");
+const { addNotification } = require("./notification.controller");
 
 
 
@@ -112,7 +113,9 @@ const getUserAllRequest = async (req, res) => {
 // confirm request 
 const updateRequestConfirm = async (req, res) => {
     const id = req.params.id;
-    const ConfirmedDonorData = req.body;
+    const data = req.body;
+    const { notification, ...ConfirmedDonorData } = data;
+    const notificationData = notification;
     const donorEmail = ConfirmedDonorData.donorEmail;
 
     const query = { _id: new ObjectId(id) };
@@ -136,6 +139,7 @@ const updateRequestConfirm = async (req, res) => {
             const userDonateDateUpdate = await usersCollection.updateOne(userQuery, dateUpdate);
             
             if (userDonateDateUpdate.modifiedCount > 0) {
+                addNotification(notificationData)
                 res.send({ status: true, message: 'Request and user donation date updated successfully', id });
             } else {
                 res.send({ status: true, message: 'Request updated successfully, but user donation date not found', id });
