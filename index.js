@@ -8,22 +8,20 @@ const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const { connect } = require('./utils/DB-connect');
+
 // stripe  payment 
 const stripe = require('stripe')(process.env.STRIPE_KEY);
 app.use(express.static('public'));
 const cron = require('node-cron');
 const sendDonationRemainderEmail = require('./utils/SendEmail/sendDonationRemainderEmail')
 
-// Create HTTP server
 const server = http.createServer(app);
-
-// Create Socket.io instance
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:5173", 
+    origin: ["http://localhost:5173",
       "http://localhost:5174",
-      'https://blood-donation-client-zeta.vercel.app'],
-    credentials: true,
+      'https://blood-donation-client-zeta.vercel.app'], // পরিবর্তন করুন যদি অন্য ডোমেইন ব্যবহার করেন
+    methods: ["GET", "POST"]
   }
 });
 
@@ -37,18 +35,20 @@ app.use(cors({
 }));
 app.use(cookieParser());
 
-// Notification middleware
-app.use((req, res, next) => {
-  req.io = io;
-  next();
-});
+// =====================
 
-// Notification room management
-io.on('connection', (socket) => {
-  socket.on('join', (email) => {
-    socket.join(email);
-  });
-});
+
+const socketHandler = require('./ChatApp/ChatApp'); 
+
+
+socketHandler(io);
+
+
+
+
+
+
+
 
 
 //  monthly donation reminder start
@@ -89,6 +89,7 @@ const notificationRoutes = require('./Routes/notification.router');
 const bloodBankRoutes =  require('./Routes/bloodBank.router');
 const paymentRoutes =  require('./Routes/payment.router');
 const moneyDonation =  require('./Routes/moneyDonation.router');
+const chatRoute =  require('./Routes/chart.router');
 
 
 app.use('/user', userRoutes);
@@ -97,6 +98,7 @@ app.use('/moneyDonation', moneyDonation);
 app.use('/notification', notificationRoutes );
 app.use('/bloodBank', bloodBankRoutes );
 app.use('/payment', paymentRoutes );
+app.use('/chatData', chatRoute );
 
 
 

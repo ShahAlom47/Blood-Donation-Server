@@ -205,7 +205,7 @@ const getUserBloodDonationHistory = async (req, res) => {
             .toArray();
 
          const bankResult = await bloodBankCollection
-            .find({ email: email, status: 'completed', type: 'donor' })
+            .find({ email: email, type: 'donor' })
             .skip((page - 1) * limit)  
             .limit(limit)               
             .toArray();
