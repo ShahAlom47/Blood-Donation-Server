@@ -1,3 +1,4 @@
+const { Admin } = require('mongodb');
 const { getChatCollection } = require('../utils/AllDB_Collections/ChatCollection');
 const chatCollection = getChatCollection();
 
@@ -6,7 +7,6 @@ const socketHandler = (io) => {
 
         // Join event handle
         socket.on('join', async ({userEmail,userRole}) => {
-            console.log(userEmail,userRole);
             const userChat = await chatCollection.findOne({ userEmail: userEmail });
             if (userChat) {
                 userRole==='admin'?
@@ -16,6 +16,35 @@ const socketHandler = (io) => {
             }
         });
 
+
+        // for Admin msg 
+
+
+        socket.on('sendAdminMessage', async (msgData) => {
+            const { userEmail,userName, userRole,receiverEmail, newMessage } = msgData;
+
+            const adminNewMsg = {
+                senderEmail: userEmail,
+                senderName:userName,
+                timestamp: new Date(),
+                isRead: false,
+                message: newMessage
+            }
+
+
+            const findReceiverUser = await chatCollection.findOne({ userEmail: receiverEmail });
+            if(findReceiverUser){
+                await chatCollection.updateOne(
+                    { userEmail: receiverEmail },
+                    { $push: { messages: adminNewMsg } }
+                );
+            }
+            const sendReceiverUserMsg = await chatCollection.findOne({ userEmail: receiverEmail });
+                io.emit('adminMessage', sendReceiverUserMsg?.messages)
+                io.emit('userMessage', sendReceiverUserMsg?.messages)
+        });
+
+        // for user msh 
         socket.on('message', async (msgData) => {
             const { userEmail,userName, userRole, message } = msgData;
 
@@ -50,6 +79,9 @@ const socketHandler = (io) => {
                 io.emit('adminMessage', existingUserMsg?.messages || []); // Emit to all connected clients
             }
         });
+
+
+
 
         socket.on('disconnect', () => {
             console.log('User disconnected:', socket.id);
