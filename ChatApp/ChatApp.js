@@ -1,5 +1,6 @@
 const { getChatCollection } = require('../utils/AllDB_Collections/ChatCollection');
 const getChatUserList = require('../utils/getChatUserList');
+const getUserUnreadMsgCount = require('../utils/getUserUnreadMsgCount');
 const chatCollection = getChatCollection();
 
 const socketHandler = (io) => {
@@ -17,17 +18,26 @@ const socketHandler = (io) => {
             }
         });
 
-        // join user list for admin
+        // Join user list for admin
         socket.on('joinChat', async ({ userEmail, userRole }) => {
-            try {
-                const listData = await getChatUserList();
-                socket.emit('joinChatUser', listData || []);
-            } catch (error) {
-                console.error('Error fetching chat user list:', error);
+            if (userRole === 'admin') {
+                try {
+                    const listData = await getChatUserList();
+                    socket.emit('joinChatUser', listData || []);
+                } catch (error) {
+                    console.error('Error fetching chat user list:', error);
+                }
+            } else {
+                try {
+                    const userUnreadMsg = await getUserUnreadMsgCount(userEmail);
+                    socket.emit('userUnreadMsg', userUnreadMsg || 0);
+                } catch (error) {
+                    console.error('Error fetching user unread msg:', error);
+                }
             }
         });
 
-        // for Admin msg
+        // For Admin message
         socket.on('sendAdminMessage', async (msgData) => {
             const { userEmail, userName, userRole, receiverEmail, newMessage } = msgData;
             const adminNewMsg = {
@@ -52,13 +62,16 @@ const socketHandler = (io) => {
                     const sendReceiverUserMsg = await chatCollection.findOne({ userEmail: receiverEmail });
                     io.emit('adminMessage', sendReceiverUserMsg?.messages);
                     io.emit('userMessage', sendReceiverUserMsg?.messages);
+
+                    const userUnreadMsg = await getUserUnreadMsgCount(receiverEmail);
+                    io.emit('userUnreadMsg', userUnreadMsg || 0); // Emit to all connected clients
                 }
             } catch (error) {
                 console.error('Error sending admin message:', error);
             }
         });
 
-        // for user msg
+        // For user message
         socket.on('message', async (msgData) => {
             const { userEmail, userName, userRole, message } = msgData;
             const newMsg = {
