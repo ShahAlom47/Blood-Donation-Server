@@ -90,6 +90,7 @@ const bloodBankRoutes =  require('./Routes/bloodBank.router');
 const paymentRoutes =  require('./Routes/payment.router');
 const moneyDonation =  require('./Routes/moneyDonation.router');
 const chatRoute =  require('./Routes/chart.router');
+const getChatUserList = require('./utils/getChatUserList');
 
 
 app.use('/user', userRoutes);
@@ -113,7 +114,13 @@ server.listen(port, () => {
     console.log(`Server listening on port ${port}`);
 });
 
+// const ddd =async()=>{
+//   const dd= await getChatUserList('admin@gmail.com')
+//   console.log(dd);
+//   return dd
+// }
 
+// console.log( ddd() );
 
 // check total code line . 
 // find . -path ./node_modules -prune -o -path ./.git -prune -o -name '.env' -prune -o \( -name 'package-lock.json' -o -name 'package.json' \) -prune -o -type f -print | xargs wc -l  
