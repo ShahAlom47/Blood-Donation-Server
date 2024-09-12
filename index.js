@@ -114,13 +114,7 @@ server.listen(port, () => {
     console.log(`Server listening on port ${port}`);
 });
 
-// const ddd =async()=>{
-//   const dd= await getChatUserList('admin@gmail.com')
-//   console.log(dd);
-//   return dd
-// }
 
-// console.log( ddd() );
 
 // check total code line . 
 // find . -path ./node_modules -prune -o -path ./.git -prune -o -name '.env' -prune -o \( -name 'package-lock.json' -o -name 'package.json' \) -prune -o -type f -print | xargs wc -l  

@@ -1,3 +1,4 @@
+const { query } = require("express");
 const { getChatCollection } = require("../utils/AllDB_Collections/ChatCollection");
 
 
@@ -83,7 +84,79 @@ const getAllChatUsers = async (req, res) => {
     }
 };
 
+const changeUserReadMsgStatus = async (req, res) => {
+  try {
+    const { userEmail, userRole } = req.body;
+
+    // Query to select the chat document where `userEmail` matches
+    const query = { userEmail: userEmail };
+
+    // Update query to set `isRead: true` for messages that do NOT match `senderEmail` and `senderRole`
+    const updateResult = await chatCollection.updateMany(
+      query,
+      {
+        $set: {
+          "messages.$[elem].isRead": true
+        }
+      },
+      {
+        arrayFilters: [
+          { "elem.senderEmail": { $ne: userEmail }, "elem.senderRole": { $ne: userRole } }
+        ]
+      }
+    );
+
+    if (updateResult.modifiedCount > 0) {
+      res.send({success:true, message: 'Message read status updated successfully.' });
+    } else {
+      res.json({ message: 'No matching messages found.' });
+    }
+
+  } catch (error) {
+    console.error('Error updating chat status:', error);
+    res.status(500).json({ error: 'Something went wrong' });
+  }
+};
+
+
+const changeAdminReadMsgStatus = async (req, res) => {
+  try {
+    const { senderEmail, userEmail, userRole } = req.body;
+
+    // Query to select the chat document where `userEmail` matches
+    const query = { userEmail: senderEmail };
+
+    // Update query to set `isRead: true` for messages that do NOT match `senderEmail` and `senderRole`
+    const updateResult = await chatCollection.updateMany(
+      query,
+      {
+        $set: {
+          "messages.$[elem].isRead": true
+        }
+      },
+      {
+        arrayFilters: [
+          { "elem.senderEmail": { $ne: userEmail }, "elem.senderRole": { $ne: userRole } }
+        ]
+      }
+    );
+
+    if (updateResult.modifiedCount > 0) {
+      res.send({success:true, message: 'Message read status updated successfully.' });
+    } else {
+      res.json({ message: 'No matching messages found.' });
+    }
+
+  } catch (error) {
+    console.error('Error updating chat status:', error);
+    res.status(500).json({ error: 'Something went wrong' });
+  }
+};
+
+
 
 module.exports={
     getAllChatUsers,
+    changeUserReadMsgStatus,
+    changeAdminReadMsgStatus,
 }
