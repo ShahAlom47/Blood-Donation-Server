@@ -20,7 +20,7 @@ const io = new Server(server, {
   cors: {
     origin: ["http://localhost:5173",
       "http://localhost:5174",
-      'https://blood-donation-client-zeta.vercel.app'], // পরিবর্তন করুন যদি অন্য ডোমেইন ব্যবহার করেন
+      'https://blood-donation-client-zeta.vercel.app'],
     methods: ["GET", "POST"]
   }
 });
@@ -28,17 +28,17 @@ const io = new Server(server, {
 // Middleware
 app.use(express.json());
 app.use(cors({
-    origin: ["http://localhost:5173",
-       "http://localhost:5174",
-       'https://blood-donation-client-zeta.vercel.app'],
-    credentials: true,
+  origin: ["http://localhost:5173",
+    "http://localhost:5174",
+    'https://blood-donation-client-zeta.vercel.app'],
+  credentials: true,
 }));
 app.use(cookieParser());
 
 // =====================
 
 
-const socketHandler = require('./ChatApp/ChatApp'); 
+const socketHandler = require('./ChatApp/ChatApp');
 
 
 socketHandler(io);
@@ -61,9 +61,9 @@ socketHandler(io);
 // মাসের প্রথম দিন (১ তারিখ) রাত ১২টা ০ মিনিটে চলবে
 cron.schedule('0 0 1 * *', async () => {
   try {
-    await  sendDonationRemainderEmail();
+    await sendDonationRemainderEmail();
   } catch (error) {
-    console.error( error);
+    console.error(error);
   }
 });
 
@@ -86,35 +86,35 @@ app.post('/jwt', async (req, res) => {
 const userRoutes = require('./Routes/users.routes');
 const donationRoutes = require('./Routes/donation.router');
 const notificationRoutes = require('./Routes/notification.router');
-const bloodBankRoutes =  require('./Routes/bloodBank.router');
-const paymentRoutes =  require('./Routes/payment.router');
-const moneyDonation =  require('./Routes/moneyDonation.router');
-const chatRoute =  require('./Routes/chart.router');
+const bloodBankRoutes = require('./Routes/bloodBank.router');
+const paymentRoutes = require('./Routes/payment.router');
+const moneyDonation = require('./Routes/moneyDonation.router');
+const chatRoute = require('./Routes/chart.router');
 const getChatUserList = require('./utils/getChatUserList');
 
 
 app.use('/user', userRoutes);
 app.use('/donation', donationRoutes);
 app.use('/moneyDonation', moneyDonation);
-app.use('/notification', notificationRoutes );
-app.use('/bloodBank', bloodBankRoutes );
-app.use('/payment', paymentRoutes );
-app.use('/chatData', chatRoute );
+app.use('/notification', notificationRoutes);
+app.use('/bloodBank', bloodBankRoutes);
+app.use('/payment', paymentRoutes);
+app.use('/chatData', chatRoute);
 
 
 
 
 
 app.get('/', (req, res) => {
-    res.send('Red Love is Running');
+  res.send('Red Love is Running');
 });
 
 // Start the server
 server.listen(port, () => {
-    console.log(`Server listening on port ${port}`);
+  console.log(`Server listening on port ${port}`);
 });
 
 
 
-// check total code line . 
+// check total code line .
 // find . -path ./node_modules -prune -o -path ./.git -prune -o -name '.env' -prune -o \( -name 'package-lock.json' -o -name 'package.json' \) -prune -o -type f -print | xargs wc -l  
