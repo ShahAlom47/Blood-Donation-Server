@@ -7,8 +7,8 @@ const { getNotificationCollection } = require("../utils/AllDB_Collections/Notifi
 
 
 
-const usersCollection = getUserCollection()
-const notificationCollection = getNotificationCollection()
+const usersCollection = getUserCollection();
+const notificationCollection = getNotificationCollection();
 
 
 // Register  
@@ -230,6 +230,27 @@ const deleteUser = async (req, res) => {
 };
 
 
+const checkPassword = async (req, res) =>{
+const {password}= req.body;
+const userEmail= req.params.email;
+
+try {
+  const user = await usersCollection.findOne({ email: userEmail });
+
+  const isMatch = await bcrypt.compare(password, user.password);
+
+  if (!isMatch) {
+    return res.send({status:false, message: 'Invalid  password' });
+  }
+  res.send({status:true, message: 'Password Match' });
+
+
+} catch (error) {
+  res.sendStatus(500); // Internal server error
+}
+
+}
+
 module.exports = {
   addUser,
   login,
@@ -239,4 +260,5 @@ module.exports = {
   getAllUser,
   updateUserRole,
   deleteUser,
+  checkPassword
 }

@@ -56,7 +56,7 @@ const getAllChatUsers = async (req, res) => {
         const sortedChats = allChats.sort((a, b) => {
             const dateA = new Date(a.lastMessage);
             const dateB = new Date(b.lastMessage);
-            return dateB - dateA;  // Sort in descending order
+            return dateB - dateA; 
         });
 
         // Process chats for unread messages
