@@ -1,7 +1,7 @@
 const express = require('express');
 const router= express.Router()
 
-const { addUser, isLogin, login, updateUserData, updateUserProfilePhoto, getAllUser, updateUserRole, deleteUser, checkPassword,} = require('../Controller/users.controller');
+const { addUser, isLogin, login, updateUserData, updateUserProfilePhoto, getAllUser, updateUserRole, deleteUser, checkPassword, changePassword,} = require('../Controller/users.controller');
 const verifyToken = require('../Middleware/verifyToken');
 const verifyAdmin = require('../Middleware/verifyAdmin');
 //  example=== /user/addUser
@@ -15,6 +15,7 @@ router.get('/allUser',verifyToken,verifyAdmin,getAllUser);
 router.patch('/updateUserRole/:email',verifyToken,verifyAdmin,updateUserRole);
 router.delete('/deleteUser/:email',verifyToken,verifyAdmin,deleteUser);
 router.post('/checkPassword/:email',verifyToken,checkPassword);
+router.patch('/changePassword/:email',verifyToken,changePassword);
 
 
 

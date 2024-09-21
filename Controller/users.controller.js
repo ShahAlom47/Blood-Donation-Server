@@ -251,6 +251,41 @@ try {
 
 }
 
+
+// change password 
+const changePassword = async (req, res) => {
+  const { newPassword } = req.body;
+  const userEmail = req.params.email;
+
+  // Validate input
+  if (!newPassword || !userEmail) {
+    return res.status(400).send({ status: false, message: 'Invalid input: Please provide new password.' });
+  }
+
+  try {
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+  
+    const updateRes = await usersCollection.updateOne(
+      { email: userEmail },
+      { $set: { password: hashedPassword } }
+    );
+
+
+    if (updateRes.modifiedCount === 0) {
+      return res.status(404).send({ status: false, message: 'Password change failed: User not found or no changes made.' });
+    }
+
+
+    res.send({ status: true, message: 'Your password has been successfully updated.' });
+  } catch (error) {
+    console.error('Error changing password:', error);
+    res.status(500).send({ status: false, message: 'An error occurred while updating the password. Please try again later.' });
+  }
+};
+
+
 module.exports = {
   addUser,
   login,
@@ -260,5 +295,6 @@ module.exports = {
   getAllUser,
   updateUserRole,
   deleteUser,
-  checkPassword
+  checkPassword,
+  changePassword,
 }
