@@ -18,7 +18,7 @@ const sendEmail = require('./utils/SendEmail/sendEmail');
 
 const server = http.createServer(app);
 
-// Update Socket.IO CORS Settings
+//  Socket.IO CORS 
 const io = new Server(server, {
   cors: {
     origin: [
@@ -27,7 +27,7 @@ const io = new Server(server, {
       "https://blood-donation-client-zeta.vercel.app"
     ],
     methods: ["GET", "POST"],
-    credentials: true // Add this line if you need to send cookies
+    credentials: true 
   }
 });
 
