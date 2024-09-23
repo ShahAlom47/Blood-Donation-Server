@@ -23,15 +23,21 @@ This is the server-side code for the **RedLove** blood donation platform. It han
 
 2. Install npm
   
-3. .env file :
-(JWT token)
-ACCESS_TOKEN= ******
-DB_USER= mongodb user name
-DB_PASS= mongodb password
+3. Create a `.env` file:
 
-STRIPE_KEY=*******
+   ```bash
+   # JWT Token
+   ACCESS_TOKEN= ******
 
-# NODEMAILER_USER=*****
-# NODEMAILER_PASS=******
+   # MongoDB Credentials
+   DB_USER=your_mongodb_username
+   DB_PASS=your_mongodb_password
+
+   # Stripe API Key
+   STRIPE_KEY=*******
+
+   # Nodemailer Credentials
+   NODEMAILER_USER=*****
+   NODEMAILER_PASS=******
 
    
