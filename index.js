@@ -14,6 +14,7 @@ const stripe = require('stripe')(process.env.STRIPE_KEY);
 app.use(express.static('public'));
 const cron = require('node-cron');
 const sendDonationRemainderEmail = require('./utils/SendEmail/sendDonationRemainderEmail');
+const sendEmail = require('./utils/SendEmail/sendEmail');
 
 const server = http.createServer(app);
 
@@ -65,6 +66,18 @@ app.post('/jwt', async (req, res) => {
   res.send({ token });
 });
 
+app.post('/sendMail', async (req, res) => {
+  try {
+    const  {mailOption}  = req.body;
+    const mailRes = await sendEmail(mailOption)
+    res.send(mailRes)
+  } catch (error) {
+    console.log(error);
+    res.send({ success: false, message: 'mail sending fail' })
+  }
+
+});
+
 // Routes
 const userRoutes = require('./Routes/users.routes');
 const donationRoutes = require('./Routes/donation.router');
@@ -74,6 +87,7 @@ const paymentRoutes = require('./Routes/payment.router');
 const moneyDonation = require('./Routes/moneyDonation.router');
 const chatRoute = require('./Routes/chart.router');
 
+
 app.use('/user', userRoutes);
 app.use('/donation', donationRoutes);
 app.use('/moneyDonation', moneyDonation);
@@ -81,6 +95,7 @@ app.use('/notification', notificationRoutes);
 app.use('/bloodBank', bloodBankRoutes);
 app.use('/payment', paymentRoutes);
 app.use('/chatData', chatRoute);
+
 
 app.get('/', (req, res) => {
   res.send('Red Love is Running');

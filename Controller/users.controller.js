@@ -230,6 +230,9 @@ const deleteUser = async (req, res) => {
 };
 
 
+// password change Related API 
+// =================================
+
 const checkPassword = async (req, res) =>{
 const {password}= req.body;
 const userEmail= req.params.email;
@@ -285,6 +288,34 @@ const changePassword = async (req, res) => {
   }
 };
 
+// Forget Password Related API 
+// ===============================
+
+
+const findUserAccount = async (req, res) => {
+  try {
+    const userEmail = req.params.email;
+
+    const user = await usersCollection.findOne({ email: userEmail });
+
+    if (user) {
+      return res.send({ status: true, user: user });
+    }
+
+    return res.send({ 
+      status: false, 
+      message: 'No account found with the provided email. Please check your email address and try again.' 
+    });
+
+  } catch (error) {
+    console.error('Error finding user account:', error);
+    res.send({
+      status: false,
+      message: 'An error occurred while searching for the account. Please try again later.'
+    });
+  }
+};
+
 
 module.exports = {
   addUser,
@@ -297,4 +328,5 @@ module.exports = {
   deleteUser,
   checkPassword,
   changePassword,
+  findUserAccount
 }
