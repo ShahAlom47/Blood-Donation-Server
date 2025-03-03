@@ -31,7 +31,7 @@ DB_PASS= mongodb password
 
 STRIPE_KEY=*******
 
-# NODEMAILER_USER=*****
-# NODEMAILER_PASS=******
+ NODEMAILER_USER=*****
+ NODEMAILER_PASS=******
 
    
